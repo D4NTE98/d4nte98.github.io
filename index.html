@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Symulacja hamowni samochodowej</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #00FF88;
+            --secondary: #FF6B35;
+            --background: #121212;
+            --surface: #1e1e1e;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--background);
+            color: white;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+
+        .controls {
+            grid-column: 1 / -1;
+        }
+
+        .input-group {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px;
+            background: #2d2d2d;
+            border: 1px solid #3d3d3d;
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+        }
+
+        button {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: black;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        #chartContainer {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 20px;
+            height: 600px;
+            position: relative;
+        }
+
+        .history-panel {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: 12px;
+            height: 600px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            background: #2d2d2d;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 4px solid var(--secondary);
+        }
+
+        .history-item:hover {
+            transform: translateX(10px);
+            border-left-color: var(--primary);
+        }
+
+        .loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .tooltip {
+            background: rgba(0,0,0,0.9) !important;
+            border: 1px solid var(--primary) !important;
+            border-radius: 6px !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <div class="input-group">
+            <select id="carProfile" onchange="selectCar(this)">
+                <option value="">Wybierz gotowy profil</option>
+                <option value="gti">VW Golf GTI</option>
+                <option value="tesla">Tesla Model 3 Performance</option>
+                <option value="supra">Toyota Supra MK4</option>
+                <option value="urus">Lamborghini Urus</option>
+            </select>
+            
+            <input type="text" id="model" placeholder="Model samochodu">
+            <input type="number" id="power" placeholder="Moc (KM)">
+            <input type="number" id="torque" placeholder="Moment obrotowy (Nm)">
+            
+            <button onclick="startSimulation()">Start testu</button>
+            <button onclick="exportChart()">Zapisz wykres</button>
+        </div>
+    </div>
+
+    <div id="chartContainer">
+        <div class="loader" id="loader"></div>
+        <canvas id="dynoChart"></canvas>
+    </div>
+
+    <div class="history-panel" id="historyPanel">
+        <h3>Historia testów</h3>
+        <div id="historyList"></div>
+    </div>
+
+    <script>
+        let chart = null;
+        let testHistory = [];
+        const carProfiles = {
+            gti: { model: 'VW Golf GTI', power: 245, torque: 370 },
+            tesla: { model: 'Tesla Model 3', power: 450, torque: 639 },
+            supra: { model: 'Toyota Supra MK4', power: 340, torque: 500 },
+            urus: { model: 'Lamborghini Urus', power: 650, torque: 850 }
+        };
+
+        function selectCar(select) {
+            const profile = carProfiles[select.value];
+            if (profile) {
+                document.getElementById('model').value = profile.model;
+                document.getElementById('power').value = profile.power;
+                document.getElementById('torque').value = profile.torque;
+            }
+        }
+
+        function generateDynoData(baseValue, variation, index, maxIndex) {
+            const position = index / maxIndex;
+            const logCurve = Math.log1p(position * 10) / Math.log(2);
+            const sineComponent = Math.sin(position * Math.PI * 2) * 0.1;
+            const noise = (Math.random() - 0.5) * variation;
+            const decay = 1 - Math.pow(position, 3) * 0.2;
+            return baseValue * (logCurve * 0.8 + sineComponent + noise) * decay;
+        }
+
+        function addToHistory(model, power, torque) {
+            const entry = {
+                model,
+                power,
+                torque,
+                timestamp: new Date().toLocaleString(),
+                data: {
+                    power: chart.data.datasets[0].data,
+                    torque: chart.data.datasets[1].data
+                }
+            };
+            
+            testHistory.unshift(entry);
+            if(testHistory.length > 10) testHistory.pop();
+            updateHistoryUI();
+        }
+
+        function updateHistoryUI() {
+            const container = document.getElementById('historyList');
+            container.innerHTML = testHistory.map((entry, index) => `
+                <div class="history-item" onclick="loadHistory(${index})">
+                    <strong>${entry.model}</strong><br>
+                    ${entry.timestamp}<br>
+                    Moc: ${Math.max(...entry.data.power).toFixed(1)} KM<br>
+                    Moment: ${Math.max(...entry.data.torque).toFixed(1)} Nm
+                </div>
+            `).join('');
+        }
+
+        function loadHistory(index) {
+            const entry = testHistory[index];
+            document.getElementById('model').value = entry.model;
+            document.getElementById('power').value = entry.power;
+            document.getElementById('torque').value = entry.torque;
+            startSimulation();
+        }
+
+        async function startSimulation() {
+            document.getElementById('loader').style.display = 'block';
+            
+            const model = document.getElementById('model').value;
+            const power = parseFloat(document.getElementById('power').value);
+            const torque = parseFloat(document.getElementById('torque').value);
+
+            if (!model || isNaN(power) || isNaN(torque)) {
+                alert('Wprowadź poprawne dane!');
+                return;
+            }
+
+            if (chart) chart.destroy();
+
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            const ctx = document.getElementById('dynoChart').getContext('2d');
+            const labels = Array.from({length: 100}, (_, i) => i);
+            
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: `Moc (KM)`,
+                        data: labels.map((_, i) => {
+                            if(i < 10) return (i/10) * generateDynoData(power, 0.1, i, 100);
+                            return generateDynoData(power, 0.15, i, 100);
+                        }),
+                        borderColor: '#00FF88',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        yAxisID: 'y',
+                        animation: {
+                            duration: 3000,
+                            easing: 'easeInOutQuad'
+                        }
+                    },
+                    {
+                        label: `Moment obrotowy (Nm)`,
+                        data: labels.map((_, i) => {
+                            const torquePosition = i/100;
+                            let value = torque * (1 - Math.pow(torquePosition, 2)) * 
+                                (0.9 + Math.sin(torquePosition * Math.PI) * 0.2 + 
+                                (Math.random() - 0.5) * 0.1);
+                            
+    
+                            //if(i < 10) value *= (i/10);
+
+                            if(i < 10) return (i/10) * generateDynoData(torque, 0.1, i, 100);
+                            return generateDynoData(torque, 0.15, i, 100);
+                            
+                            //return value;
+                        }),
+                        borderColor: '#FF6B35',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        yAxisID: 'y1',
+                        animation: {
+                            duration: 3200,
+                            easing: 'easeInOutQuad',
+                            delay: 300
+                        }
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.9)',
+                            titleColor: '#00FF88',
+                            bodyColor: '#FF6B35',
+                            borderColor: '#00FF88',
+                            borderWidth: 1,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.y.toFixed(1)}`;
+                                }
+                            }
+                        },
+                        legend: {
+                            labels: {
+                                color: '#fff',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: `Dyno: ${model}`,
+                            color: '#fff',
+                            font: {
+                                size: 18
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Moc (KM)',
+                                color: '#00FF88'
+                            },
+                            grid: { color: '#333' },
+                            ticks: { color: '#666' },
+                            beginAtZero: true,
+                            suggestedMax: power * 1.3
+                        },
+                        y1: {
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Moment obrotowy (Nm)',
+                                color: '#FF6B35'
+                            },
+                            grid: { display: false },
+                            ticks: { color: '#666' },
+                            beginAtZero: true,
+                            suggestedMax: torque * 1.2
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'RPM (×100)',
+                                color: '#666'
+                            },
+                            grid: { color: '#333' },
+                            ticks: { color: '#666' }
+                        }
+                    }
+                }
+            });
+
+            addToHistory(model, power, torque);
+            document.getElementById('loader').style.display = 'none';
+        }
+
+        function exportChart() {
+            if (!chart) return;
+            const link = document.createElement('a');
+            link.download = `${document.getElementById('model').value}-dyno.png`;
+            link.href = document.getElementById('dynoChart').toDataURL();
+            link.click();
+        }
+    </script>
+</body>
+</html>
