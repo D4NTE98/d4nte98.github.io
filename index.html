@@ -1,31 +1,100 @@
-<!DOCTYPE html>
-<html lang="pl">
+<!doctype html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Symulacja hamowni samochodowej</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --primary: #00FF88;
-            --secondary: #FF6B35;
-            --background: #121212;
-            --surface: #1e1e1e;
-        }
-
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: var(--background);
-            color: white;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 30px;
-        }
-    </style>
+    <meta charset="utf-8">
+    <title>d4tFramework</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="d4tFramework - modern modular FiveM framework by D4NTE.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <center>Hello world</center>
+    <main id="site">
+        <div class="background"></div>
+        <div class="overlay"></div>
+        <div class="particles">
+            <span></span><span></span><span></span><span></span><span></span>
+        </div>
+
+        <nav class="nav nav-reveal">
+            <div class="nav-logo"><i class="fa-solid fa-layer-group"></i> d4tFramework</div>
+            <div class="nav-links">
+                <a href="#resources"><i class="fa-solid fa-cubes"></i> Resources</a>
+                <a href="#changelog"><i class="fa-solid fa-clock-rotate-left"></i> Changelog</a>
+                <a href="https://github.com/D4NTE98/d4tFramework" target="_blank"><i class="fa-brands fa-github"></i> Repository</a>
+            </div>
+        </nav>
+
+        <section class="hero">
+            <div class="logo reveal">d4tFramework</div>
+            <p class="description reveal delay-1">
+                A modern modular FiveM framework focused on performance, clean architecture, secure server-side logic and scalable roleplay systems.
+            </p>
+
+            <div class="actions reveal delay-2">
+                <a class="primary" href="https://github.com/D4NTE98/d4tFramework" target="_blank"><i class="fa-brands fa-github"></i> Open d4tFramework</a>
+                <a class="secondary" href="https://github.com/D4NTE98" target="_blank"><i class="fa-solid fa-user-astronaut"></i> D4NTE GitHub</a>
+            </div>
+
+            <div class="stats reveal delay-3">
+                <div>
+                    <i class="fa-solid fa-code-branch"></i>
+                    <span>Version</span>
+                    <strong>0.1.0</strong>
+                </div>
+                <div>
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                    <span>Resources</span>
+                    <strong>12</strong>
+                </div>
+                <div>
+                    <i class="fa-solid fa-crown"></i>
+                    <span>Author</span>
+                    <strong>D4NTE</strong>
+                </div>
+            </div>
+        </section>
+
+        <section id="resources" class="section">
+            <div class="section-head reveal">
+                <span><i class="fa-solid fa-cubes"></i> Framework ecosystem</span>
+                <h2>Included resources</h2>
+            </div>
+
+            <div class="grid">
+                <a class="card reveal" href="https://github.com/D4NTE98/d4tCore" target="_blank"><i class="fa-solid fa-microchip"></i><strong>d4tCore</strong><p>Main framework core and player foundation.</p></a>
+                <a class="card reveal" href="https://github.com/D4NTE98/d4tConnection" target="_blank"><i class="fa-solid fa-database"></i><strong>d4tConnection</strong><p>Database query layer for MySQL resources.</p></a>
+                <a class="card reveal" href="https://github.com/D4NTE98/d4tData" target="_blank"><i class="fa-solid fa-share-nodes"></i><strong>d4tData</strong><p>Secure synchronized data system.</p></a>
+                <a class="card reveal" href="https://github.com/D4NTE98/d4tTarget" target="_blank"><i class="fa-solid fa-crosshairs"></i><strong>d4tTarget</strong><p>Modern target and interaction system.</p></a>
+                <a class="card reveal" href="https://github.com/D4NTE98/d4tAdmin" target="_blank"><i class="fa-solid fa-shield-halved"></i><strong>d4tAdmin</strong><p>Administration panel and staff tools.</p></a>
+                <a class="card reveal" href="https://github.com/D4NTE98/d4tAntiCheat" target="_blank"><i class="fa-solid fa-user-shield"></i><strong>d4tAntiCheat</strong><p>Protection layer and server validation.</p></a>
+                <a class="card reveal" href="https://github.com/D4NTE98/d4tAuth" target="_blank"><i class="fa-solid fa-fingerprint"></i><strong>d4tAuth</strong><p>Login, registration and character creation.</p></a>
+                <a class="card reveal" href="https://github.com/D4NTE98/d4tInventory" target="_blank"><i class="fa-solid fa-box-open"></i><strong>d4tInventory</strong><p>Inventory, metadata, stash and hotbar system.</p></a>
+                <a class="card reveal" href="https://github.com/D4NTE98/d4tJobs" target="_blank"><i class="fa-solid fa-briefcase"></i><strong>d4tJobs</strong><p>Civilian jobs and payout system.</p></a>
+                <a class="card reveal" href="https://github.com/D4NTE98/d4tVehicles" target="_blank"><i class="fa-solid fa-car"></i><strong>d4tVehicles</strong><p>Vehicle ownership, garages and keys.</p></a>
+                <a class="card reveal" href="https://github.com/D4NTE98/d4tEvents" target="_blank"><i class="fa-solid fa-trophy"></i><strong>d4tEvents</strong><p>Server events and minigames.</p></a>
+                <a class="card reveal" href="https://github.com/D4NTE98/d4tLoadingScreen" target="_blank"><i class="fa-solid fa-spinner"></i><strong>d4tLoadingScreen</strong><p>Minimal animated loading screen.</p></a>
+            </div>
+        </section>
+
+        <section id="changelog" class="section changelog">
+            <div class="section-head reveal">
+                <span><i class="fa-solid fa-code-pull-request"></i> Latest release</span>
+                <h2>Changelog 0.1.0</h2>
+            </div>
+
+            <div class="timeline">
+                <div class="entry reveal"><span><i class="fa-solid fa-microchip"></i> Core</span><p>Initial modular d4tCore framework structure with client, server and shared modules.</p></div>
+                <div class="entry reveal"><span><i class="fa-solid fa-puzzle-piece"></i> Systems</span><p>Added authentication, data sync, inventory, vehicles, jobs, admin tools and anti-cheat resources.</p></div>
+                <div class="entry reveal"><span><i class="fa-solid fa-wand-magic-sparkles"></i> UI</span><p>Introduced minimalist UI style for loading screen and authentication views.</p></div>
+                <div class="entry reveal"><span><i class="fa-solid fa-book"></i> Docs</span><p>Added English documentation, preview files and repository-ready README structure.</p></div>
+            </div>
+        </section>
+
+        <footer class="reveal">
+            <span><i class="fa-solid fa-heart"></i> Created by D4NTE</span>
+            <a href="https://github.com/D4NTE98" target="_blank"><i class="fa-brands fa-github"></i> github.com/D4NTE98</a>
+        </footer>
+    </main>
 </body>
 </html>
